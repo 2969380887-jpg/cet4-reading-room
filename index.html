@@ -3,63 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f4efe6" />
-    <title>四级精读室</title>
+    <meta name="theme-color" content="#f8f4ee" />
+    <title>中浩 · 四级英语阅读</title>
     <link rel="preconnect" href="https://api.dictionaryapi.dev" />
     <link rel="preconnect" href="https://api.mymemory.translated.net" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="site-header">
-      <a class="brand" href="#">
-        <span class="brand-mark">CET4</span>
-        <span>四级精读室</span>
-      </a>
-      <button class="ghost-button" id="open-vocabulary">我的生词 <b id="saved-count">0</b></button>
-    </header>
+    <main id="app"></main>
 
-    <main>
-      <section class="hero">
-        <p class="eyebrow">READ · CLICK · UNDERSTAND</p>
-        <h1>把真题读懂，<br /><em>不只做完。</em></h1>
-        <p class="hero-copy">六套四级真题的选词填空与仔细阅读。点击任意英文单词查词，按段查看中文翻译。</p>
-        <div class="paper-picker" id="paper-picker"></div>
-      </section>
-
-      <nav class="section-tabs" aria-label="题型">
-        <button class="tab active" data-view="cloze">选词填空</button>
-        <button class="tab" data-view="passage-0">仔细阅读一</button>
-        <button class="tab" data-view="passage-1">仔细阅读二</button>
-      </nav>
-      <nav class="question-jumper" id="question-jumper" aria-label="题号导航"></nav>
-
-      <section class="study-shell">
-        <aside class="study-guide">
-          <p class="eyebrow">HOW TO USE</p>
-          <h2 id="section-title">选词填空</h2>
-          <p id="section-tip">先通读全文，再从词库中点击一个词，并点击对应空格填入。</p>
-          <div class="progress-card">
-            <span>本页进度</span>
-            <strong id="progress-text">0 / 10</strong>
-            <div class="progress-track"><i id="progress-bar"></i></div>
-          </div>
-          <button class="primary-button" id="reset-current">重置本页</button>
-        </aside>
-        <article class="content-card" id="content"></article>
-      </section>
-    </main>
-
-    <dialog id="word-dialog">
-      <button class="dialog-close" aria-label="关闭">×</button>
-      <div id="word-dialog-content"></div>
-    </dialog>
-
-    <dialog id="vocabulary-dialog">
-      <button class="dialog-close" aria-label="关闭">×</button>
-      <p class="eyebrow">YOUR WORDS</p>
-      <h2>我的生词本</h2>
-      <div id="vocabulary-list"></div>
-    </dialog>
+    <aside class="word-sheet" id="word-sheet" aria-live="polite">
+      <button class="sheet-close" id="close-word-sheet" aria-label="关闭">×</button>
+      <div id="word-sheet-content"></div>
+    </aside>
 
     <div class="toast" id="toast" role="status"></div>
     <script src="app.js"></script>
