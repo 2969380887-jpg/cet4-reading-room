@@ -193,19 +193,35 @@ button { cursor: pointer; }
   border-radius: 12px;
   background: var(--soft);
 }
-.bank-word {
+.bank-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   border: 1px solid #dec7ad;
   border-radius: 999px;
-  padding: 8px 12px;
-  color: #5b4937;
   background: #fffdf9;
+  overflow: hidden;
 }
-.bank-word.selected { color: white; border-color: var(--accent); background: var(--accent); }
+.bank-word {
+  border: 0;
+  padding: 8px 10px 8px 12px;
+  color: #5b4937;
+  background: transparent;
+}
+.bank-meaning {
+  border: 0;
+  border-left: 1px solid #ead8c4;
+  padding: 8px 10px;
+  color: var(--accent);
+  background: #fbf1e7;
+  font-size: 14px;
+}
+.bank-word.selected { color: white; background: var(--accent); }
 
 .reading-text {
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(20px, 2.2vw, 28px);
-  line-height: 1.9;
+  font-size: clamp(18px, 1.45vw, 22px);
+  line-height: 1.82;
 }
 .para-block {
   margin: 0 0 30px;
@@ -273,7 +289,7 @@ button { cursor: pointer; }
 .question-stem {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 22px;
+  font-size: 21px;
   line-height: 1.65;
   font-weight: 800;
 }
@@ -286,7 +302,7 @@ button { cursor: pointer; }
   line-height: 1.6;
 }
 .choice input { margin-top: 6px; accent-color: var(--accent); }
-.choice-text { font-family: Georgia, "Times New Roman", serif; font-size: 19px; }
+.choice-text { font-family: Georgia, "Times New Roman", serif; font-size: 20px; }
 .choice-tools { grid-column: 2; margin-top: -4px; }
 
 .word-sheet {
@@ -353,8 +369,8 @@ button { cursor: pointer; }
   .section-tabs { grid-template-columns: 1fr; }
   .tab { min-height: 62px; }
   .paper-sheet { padding: 22px 18px; }
-  .reading-text { font-size: 19px; line-height: 1.85; }
-  .question-stem { font-size: 19px; }
-  .choice-text { font-size: 17px; }
+  .reading-text { font-size: 17px; line-height: 1.82; }
+  .question-stem { font-size: 18px; }
+  .choice-text { font-size: 18px; }
   .word-sheet { padding: 26px 20px; }
 }

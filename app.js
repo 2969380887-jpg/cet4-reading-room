@@ -8,51 +8,129 @@ const state = {
   view: localStorage.getItem("cet4-view") || "cloze",
   selectedBankWord: null,
   answers: JSON.parse(localStorage.getItem("cet4-answers") || "{}"),
-  translations: JSON.parse(localStorage.getItem("cet4-translations") || "{}"),
-  wordCache: JSON.parse(localStorage.getItem("cet4-word-cache") || "{}"),
+  translations: {},
+  visibleTranslations: new Set(),
 };
 
-const commonWords = {
-  intensity: "强度；强烈",
-  exercise: "锻炼；练习",
-  evidence: "证据",
-  guideline: "指导方针",
-  beneficial: "有益的",
-  physical: "身体的；物理的",
-  mental: "心理的；精神的",
-  health: "健康",
-  review: "综述；评论；复习",
-  influence: "影响",
-  mood: "情绪",
-  climate: "气候",
-  warming: "变暖",
-  global: "全球的",
-  species: "物种",
-  research: "研究",
-  scientist: "科学家",
-  financial: "金融的；财务的",
-  education: "教育",
-  literacy: "读写能力；素养",
-  confidence: "信心",
-  security: "安全；保障",
-  nature: "自然",
-  public: "公共的",
-  community: "社区；群体",
-  engineer: "工程师",
-  engineering: "工程学",
-  challenge: "挑战",
-  responsibility: "责任",
-  balance: "平衡",
-  stress: "压力",
-  flexible: "灵活的",
+const lexicon = {
+  ability: ["n.", "/əˈbɪləti/", "能力；才能"],
+  academic: ["adj.", "/ˌækəˈdemɪk/", "学术的；学院的"],
+  accepted: ["adj.", "/əkˈseptɪd/", "被接受的；公认的"],
+  achievement: ["n.", "/əˈtʃiːvmənt/", "成就；完成"],
+  actually: ["adv.", "/ˈæktʃuəli/", "实际上；事实上"],
+  adaptable: ["adj.", "/əˈdæptəbl/", "能适应的"],
+  advantage: ["n.", "/ədˈvɑːntɪdʒ/", "优势；有利条件"],
+  advertising: ["n.", "/ˈædvətaɪzɪŋ/", "广告；广告活动"],
+  approximately: ["adv.", "/əˈprɒksɪmətli/", "大约；近似地"],
+  assume: ["v.", "/əˈsjuːm/", "假定；认为"],
+  audience: ["n.", "/ˈɔːdiəns/", "观众；听众"],
+  balance: ["n./v.", "/ˈbæləns/", "平衡；权衡"],
+  beneficial: ["adj.", "/ˌbenɪˈfɪʃl/", "有益的；有利的"],
+  challenge: ["n./v.", "/ˈtʃælɪndʒ/", "挑战；质疑"],
+  climate: ["n.", "/ˈklaɪmət/", "气候；风气"],
+  community: ["n.", "/kəˈmjuːnəti/", "社区；群体"],
+  comprehend: ["v.", "/ˌkɒmprɪˈhend/", "理解；领会"],
+  confidence: ["n.", "/ˈkɒnfɪdəns/", "信心；信任"],
+  consider: ["v.", "/kənˈsɪdə(r)/", "考虑；认为"],
+  considerable: ["adj.", "/kənˈsɪdərəbl/", "相当大的；重要的"],
+  constitute: ["v.", "/ˈkɒnstɪtjuːt/", "构成；组成"],
+  contributing: ["adj./v.", "/kənˈtrɪbjuːtɪŋ/", "促成的；贡献"],
+  crucial: ["adj.", "/ˈkruːʃl/", "关键的；至关重要的"],
+  distribution: ["n.", "/ˌdɪstrɪˈbjuːʃn/", "分配；分布"],
+  education: ["n.", "/ˌedʒuˈkeɪʃn/", "教育；培养"],
+  emotional: ["adj.", "/ɪˈməʊʃənl/", "情感的；情绪的"],
+  engineer: ["n./v.", "/ˌendʒɪˈnɪə(r)/", "工程师；设计"],
+  engineering: ["n.", "/ˌendʒɪˈnɪərɪŋ/", "工程学；工程"],
+  environment: ["n.", "/ɪnˈvaɪrənmənt/", "环境；周围状况"],
+  evidence: ["n.", "/ˈevɪdəns/", "证据；迹象"],
+  exercise: ["n./v.", "/ˈeksəsaɪz/", "锻炼；练习；运用"],
+  financial: ["adj.", "/faɪˈnænʃl/", "金融的；财务的"],
+  flexible: ["adj.", "/ˈfleksəbl/", "灵活的；可变通的"],
+  global: ["adj.", "/ˈɡləʊbl/", "全球的；整体的"],
+  guideline: ["n.", "/ˈɡaɪdlaɪn/", "指导方针；准则"],
+  health: ["n.", "/helθ/", "健康；卫生"],
+  ignorance: ["n.", "/ˈɪɡnərəns/", "无知；不了解"],
+  influence: ["n./v.", "/ˈɪnfluəns/", "影响；影响力"],
+  intensity: ["n.", "/ɪnˈtensəti/", "强度；强烈"],
+  interact: ["v.", "/ˌɪntərˈækt/", "互动；相互作用"],
+  literacy: ["n.", "/ˈlɪtərəsi/", "读写能力；素养"],
+  management: ["n.", "/ˈmænɪdʒmənt/", "管理；经营"],
+  mental: ["adj.", "/ˈmentl/", "心理的；精神的"],
+  mood: ["n.", "/muːd/", "心情；情绪"],
+  nature: ["n.", "/ˈneɪtʃə(r)/", "自然；本质"],
+  physical: ["adj.", "/ˈfɪzɪkl/", "身体的；物理的"],
+  public: ["adj./n.", "/ˈpʌblɪk/", "公共的；公众"],
+  research: ["n./v.", "/rɪˈsɜːtʃ/", "研究；调查"],
+  responsibility: ["n.", "/rɪˌspɒnsəˈbɪləti/", "责任；职责"],
+  review: ["n./v.", "/rɪˈvjuː/", "综述；评论；复习"],
+  sample: ["n./v.", "/ˈsɑːmpl/", "样本；抽样"],
+  security: ["n.", "/sɪˈkjʊərəti/", "安全；保障"],
+  significant: ["adj.", "/sɪɡˈnɪfɪkənt/", "重要的；显著的"],
+  species: ["n.", "/ˈspiːʃiːz/", "物种"],
+  stress: ["n./v.", "/stres/", "压力；强调"],
+  systematic: ["adj.", "/ˌsɪstəˈmætɪk/", "系统的；有条理的"],
+  technology: ["n.", "/tekˈnɒlədʒi/", "技术；科技"],
+  unique: ["adj.", "/juˈniːk/", "独特的；唯一的"],
+  vocabulary: ["n.", "/vəˈkæbjələri/", "词汇；词汇量"],
+  warming: ["n.", "/ˈwɔːmɪŋ/", "变暖；升温"],
 };
+
+const wordBankMeanings = {
+  closed: ["adj.", "/kləʊzd/", "关闭的；封闭的"],
+  complex: ["adj.", "/ˈkɒmpleks/", "复杂的"],
+  component: ["n.", "/kəmˈpəʊnənt/", "组成部分；部件"],
+  confused: ["adj.", "/kənˈfjuːzd/", "困惑的；混乱的"],
+  deteriorate: ["v.", "/dɪˈtɪəriəreɪt/", "恶化；退化"],
+  deposited: ["v.", "/dɪˈpɒzɪtɪd/", "存放；沉积"],
+  equivalent: ["adj./n.", "/ɪˈkwɪvələnt/", "相等的；等同物"],
+  graphically: ["adv.", "/ˈɡræfɪkli/", "生动地；用图表地"],
+  instinct: ["n.", "/ˈɪnstɪŋkt/", "本能；直觉"],
+  instincts: ["n.", "/ˈɪnstɪŋkts/", "本能；直觉"],
+  literary: ["adj.", "/ˈlɪtərəri/", "文学的"],
+  narration: ["n.", "/nəˈreɪʃn/", "叙述；讲述"],
+  neutral: ["adj.", "/ˈnjuːtrəl/", "中立的；中性的"],
+  offence: ["n.", "/əˈfens/", "违法行为；冒犯"],
+  offences: ["n.", "/əˈfensɪz/", "违法行为；冒犯"],
+  permanently: ["adv.", "/ˈpɜːmənəntli/", "永久地"],
+  performed: ["v.", "/pəˈfɔːmd/", "执行；表现；表演"],
+  prescribes: ["v.", "/prɪˈskraɪbz/", "规定；开处方"],
+  readily: ["adv.", "/ˈredɪli/", "容易地；乐意地"],
+  registered: ["adj./v.", "/ˈredʒɪstəd/", "注册的；登记"],
+  reinforces: ["v.", "/ˌriːɪnˈfɔːsɪz/", "加强；巩固"],
+  revealed: ["v.", "/rɪˈviːld/", "揭示；透露"],
+  symbolic: ["adj.", "/sɪmˈbɒlɪk/", "象征性的"],
+  speculate: ["v.", "/ˈspekjuleɪt/", "推测；投机"],
+  suddenly: ["adv.", "/ˈsʌdənli/", "突然地"],
+  ultimately: ["adv.", "/ˈʌltɪmətli/", "最终；根本上"],
+  undermined: ["v.", "/ˌʌndəˈmaɪnd/", "削弱；破坏"],
+  yielded: ["v.", "/jiːldɪd/", "产生；屈服"],
+};
+
+function getWordInfo(word) {
+  const base = word.toLowerCase().replace(/[^a-z-]/g, "");
+  const forms = [base, base.replace(/s$/, ""), base.replace(/ed$/, ""), base.replace(/ing$/, "")];
+  const foundKey = forms.find(item => lexicon[item] || wordBankMeanings[item]);
+  if (foundKey) {
+    const [pos, phonetic, meaning] = lexicon[foundKey] || wordBankMeanings[foundKey];
+    return { word: base, pos, phonetic, meaning };
+  }
+  return guessWordInfo(base);
+}
+
+function guessWordInfo(word) {
+  let pos = "n./v.";
+  if (word.endsWith("ly")) pos = "adv.";
+  else if (/(ous|ful|ive|able|ible|al|ic|less)$/.test(word)) pos = "adj.";
+  else if (/(tion|sion|ment|ness|ity|ance|ence|ship)$/.test(word)) pos = "n.";
+  else if (/(ize|ise|fy|ate)$/.test(word)) pos = "v.";
+  const phonetic = `/${word}/`;
+  return { word, pos, phonetic, meaning: "暂无本地释义，建议结合上下文理解。" };
+}
 
 function save() {
   localStorage.setItem("cet4-paper", state.paperIndex);
   localStorage.setItem("cet4-view", state.view);
   localStorage.setItem("cet4-answers", JSON.stringify(state.answers));
-  localStorage.setItem("cet4-translations", JSON.stringify(state.translations));
-  localStorage.setItem("cet4-word-cache", JSON.stringify(state.wordCache));
 }
 
 function toast(message) {
@@ -74,13 +152,6 @@ function describePaper() {
   return "Section A 选词填空 + Passage One 精读 Q46-50 + Passage Two 精读 Q51-55 · 全文查词 + 独立翻译";
 }
 
-function clickableText(text) {
-  return escapeHtml(text).replace(/[A-Za-z]+(?:['’-][A-Za-z]+)*/g, word => {
-    const value = word.toLowerCase().replace(/[’']/g, "");
-    return `<span class="lookup-word" data-word="${value}">${word}</span>`;
-  });
-}
-
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, char => ({
     "&": "&amp;",
@@ -89,6 +160,13 @@ function escapeHtml(value) {
     '"': "&quot;",
     "'": "&#39;",
   })[char]);
+}
+
+function clickableText(text) {
+  return escapeHtml(text).replace(/[A-Za-z]+(?:['’-][A-Za-z]+)*/g, word => {
+    const value = word.toLowerCase().replace(/[’']/g, "");
+    return `<span class="lookup-word" data-word="${value}">${word}</span>`;
+  });
 }
 
 function splitReading(text) {
@@ -164,7 +242,10 @@ function renderCloze(paper) {
   return `
     <h2 class="section-heading">Section A — 选词填空</h2>
     <div class="word-bank">${paper.cloze.wordBank.map(item =>
-      `<button class="bank-word" data-bank="${item.letter}: ${item.word}">${item.letter} · ${item.word}</button>`
+      `<div class="bank-item">
+        <button class="bank-word" data-bank="${item.letter}: ${item.word}">${item.letter} · ${item.word}</button>
+        <button class="bank-meaning" data-word="${item.word.toLowerCase()}">释义</button>
+      </div>`
     ).join("")}</div>
     <div class="reading-text">
       ${paragraphs.map((paragraph, index) => renderParagraph(paragraph, `${paper.id}-cloze-${index}`, index)).join("")}
@@ -180,7 +261,7 @@ function renderParagraph(text, key, index) {
     <section class="para-block">
       <span class="para-label">PARAGRAPH ${String(index + 1).padStart(2, "0")}</span>
       <p>${withWords}</p>
-      ${renderTranslateControl(key, text, "查看本段翻译")}
+      ${renderTranslateControl(key, "查看本段翻译")}
     </section>`;
 }
 
@@ -203,94 +284,42 @@ function renderQuestion(question) {
   return `
     <section class="question-card" id="q-${question.number}">
       <p class="question-stem">${question.number}. ${clickableText(question.stem)}</p>
-      ${renderTranslateControl(`q-${question.number}-stem`, question.stem, "查看题干翻译")}
+      ${renderTranslateControl(`q-${question.number}-stem`, "查看题干翻译")}
       ${question.choices.map(choice => `
         <label class="choice">
           <input type="radio" name="q-${question.number}" data-question="${question.number}" value="${choice.letter}" ${state.answers[answerKey(question.number)] === choice.letter ? "checked" : ""}>
           <span class="choice-text"><b>${choice.letter}.</b> ${clickableText(choice.text)}</span>
-          <span class="choice-tools">${renderTranslateControl(`q-${question.number}-${choice.letter}`, choice.text, `查看 ${choice.letter} 选项翻译`)}</span>
+          <span class="choice-tools">${renderTranslateControl(`q-${question.number}-${choice.letter}`, `查看 ${choice.letter} 选项翻译`)}</span>
         </label>`).join("")}
     </section>`;
 }
 
-function renderTranslateControl(key, text, label) {
-  if (state.translations[key]) {
-    return `<div class="translate-row"><button class="translate-button" data-collapse="${key}">收起翻译</button><div class="translation">${escapeHtml(state.translations[key])}</div></div>`;
+function renderTranslateControl(key, label) {
+  const translation = state.translations[key];
+  if (translation && state.visibleTranslations.has(key)) {
+    return `<div class="translate-row"><button class="translate-button" data-collapse="${key}">收起翻译</button><div class="translation">${escapeHtml(translation)}</div></div>`;
   }
-  return `<div class="translate-row"><button class="translate-button" data-translate="${encodeURIComponent(key)}" data-text="${encodeURIComponent(text)}">▶ ${label}</button></div>`;
+  return `<div class="translate-row"><button class="translate-button" data-show-translation="${key}">▶ ${label}</button></div>`;
 }
 
-function render() {
-  state.papers.length ? renderStudy() : renderHome();
-  save();
-}
-
-async function translate(text) {
-  const normalized = text.replace(/\s+/g, " ").trim();
-  const chunks = normalized.match(/.{1,420}(?:\s|$)/g) || [normalized];
-  const results = [];
-  for (const chunk of chunks) {
-    const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunk.trim())}&langpair=en|zh-CN`);
-    if (!response.ok) throw new Error("translation failed");
-    const data = await response.json();
-    results.push(data.responseData?.translatedText || "");
-  }
-  return results.join("");
+function showMissingTranslation(button) {
+  const row = button.closest(".translate-row");
+  row.innerHTML = `<button class="translate-button" disabled>暂无本地翻译</button>
+    <div class="translation">这条内容还没有写入本地翻译库，所以不会联网等待。需要的话，我可以在你明确同意后一次性生成并写入本地译文。</div>`;
 }
 
 function openWordSheet(word) {
   document.querySelectorAll(".active-word").forEach(node => node.classList.remove("active-word"));
   document.querySelectorAll(`[data-word="${CSS.escape(word)}"]`).forEach(node => node.classList.add("active-word"));
-  const cached = state.wordCache[word];
-  wordSheetContent.innerHTML = cached ? wordHtml(cached) : `
-    <h2 class="word-title">${word}</h2>
-    <div class="word-phonetic">正在查询释义...</div>
-    <div class="word-meaning">考研释义：${commonWords[word] || "查询中"}</div>`;
+  const info = getWordInfo(word);
+  wordSheetContent.innerHTML = `
+    <h2 class="word-title">${escapeHtml(info.word)} <span class="word-phonetic">${escapeHtml(info.phonetic)}</span></h2>
+    <div class="word-meaning"><b>词性：</b>${escapeHtml(info.pos)}</div>
+    <div class="word-meaning"><b>考研常见意思：</b>${escapeHtml(info.meaning)}</div>`;
   wordSheet.classList.add("open");
-  if (!cached) lookupWord(word);
 }
 
-function wordHtml(info) {
-  return `
-    <h2 class="word-title">${escapeHtml(info.word)} <span class="word-phonetic">${escapeHtml(info.phonetic || "")}</span></h2>
-    <div class="word-meaning">考研释义：${escapeHtml(info.chinese || commonWords[info.word] || "暂无中文释义")}</div>
-    ${info.definition ? `<div class="word-definition">${escapeHtml(info.definition)}</div>` : ""}
-    ${info.audio ? `<audio controls src="${info.audio}"></audio>` : ""}`;
-}
-
-async function lookupWord(word) {
-  try {
-    const [dictionaryResponse, chinese] = await Promise.allSettled([
-      fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`),
-      translate(word),
-    ]);
-    let entry = {};
-    if (dictionaryResponse.status === "fulfilled" && dictionaryResponse.value.ok) {
-      const entries = await dictionaryResponse.value.json();
-      entry = entries[0] || {};
-    }
-    const definition = entry.meanings?.[0]?.definitions?.[0]?.definition || "";
-    const audio = entry.phonetics?.find(item => item.audio)?.audio || "";
-    const info = {
-      word,
-      phonetic: entry.phonetic || entry.phonetics?.find(item => item.text)?.text || "",
-      chinese: chinese.status === "fulfilled" ? chinese.value : commonWords[word] || "",
-      definition,
-      audio,
-    };
-    state.wordCache[word] = info;
-    save();
-    wordSheetContent.innerHTML = wordHtml(info);
-  } catch {
-    wordSheetContent.innerHTML = wordHtml({
-      word,
-      chinese: commonWords[word] || "网络查询失败，请稍后再试",
-      definition: "",
-    });
-  }
-}
-
-document.addEventListener("click", async event => {
+document.addEventListener("click", event => {
   const openPaper = event.target.closest("[data-open-paper]");
   if (openPaper) {
     state.paperIndex = Number(openPaper.dataset.openPaper);
@@ -315,6 +344,8 @@ document.addEventListener("click", async event => {
     save();
     return;
   }
+  const meaning = event.target.closest("[data-word]");
+  if (meaning) { openWordSheet(meaning.dataset.word); return; }
   const bank = event.target.closest("[data-bank]");
   if (bank) {
     state.selectedBankWord = bank.dataset.bank;
@@ -330,28 +361,20 @@ document.addEventListener("click", async event => {
     save();
     return;
   }
-  const word = event.target.closest("[data-word]");
-  if (word) { openWordSheet(word.dataset.word); return; }
-  const translateButton = event.target.closest("[data-translate]");
-  if (translateButton) {
-    const key = decodeURIComponent(translateButton.dataset.translate);
-    translateButton.disabled = true;
-    translateButton.textContent = "翻译中...";
-    try {
-      state.translations[key] = await translate(decodeURIComponent(translateButton.dataset.text));
+  const showTranslation = event.target.closest("[data-show-translation]");
+  if (showTranslation) {
+    const key = showTranslation.dataset.showTranslation;
+    if (state.translations[key]) {
+      state.visibleTranslations.add(key);
       renderStudy();
-      save();
-    } catch {
-      translateButton.disabled = false;
-      translateButton.textContent = "翻译失败，点击重试";
     }
+    else showMissingTranslation(showTranslation);
     return;
   }
   const collapse = event.target.closest("[data-collapse]");
   if (collapse) {
-    delete state.translations[collapse.dataset.collapse];
+    state.visibleTranslations.delete(collapse.dataset.collapse);
     renderStudy();
-    save();
     return;
   }
   if (event.target.closest("[data-reset]")) {
@@ -379,10 +402,13 @@ document.querySelector("#close-word-sheet").addEventListener("click", () => {
   document.querySelectorAll(".active-word").forEach(node => node.classList.remove("active-word"));
 });
 
-fetch("data/papers.json")
-  .then(response => response.json())
-  .then(data => {
+Promise.all([
+  fetch("data/papers.json").then(response => response.json()),
+  fetch("data/translations.json").then(response => response.ok ? response.json() : {}).catch(() => ({})),
+])
+  .then(([data, translations]) => {
     state.papers = data.papers;
+    state.translations = translations;
     renderHome();
   })
   .catch(() => {
