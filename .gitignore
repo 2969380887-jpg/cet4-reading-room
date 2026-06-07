@@ -1,0 +1,10 @@
+# Non-site study materials in this shared workspace
+*.pdf
+*.docx
+docx_inspect/
+output/
+ppt_extract/
+tmp/
+
+# Local tooling
+tools/
