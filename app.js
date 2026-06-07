@@ -117,14 +117,14 @@ function getWordInfo(word) {
     base.replace(/ing$/, ""),
     base.replace(/ies$/, "y"),
   ];
-  const localKey = forms.find(item => state.localLexicon[item]);
-  if (localKey) {
-    return formatLocalWord(base, state.localLexicon[localKey]);
-  }
   const foundKey = forms.find(item => lexicon[item] || wordBankMeanings[item]);
   if (foundKey) {
     const [pos, phonetic, meaning] = lexicon[foundKey] || wordBankMeanings[foundKey];
     return { word: base, pos, phonetic, meaning };
+  }
+  const localKey = forms.find(item => state.localLexicon[item]);
+  if (localKey) {
+    return formatLocalWord(base, state.localLexicon[localKey]);
   }
   return guessWordInfo(base);
 }
@@ -299,20 +299,20 @@ function renderPassage(paper, index) {
     </div>
     <div class="question-list">
       <h2 class="section-heading">阅读题目</h2>
-      ${passage.questions.map(question => renderQuestion(question)).join("")}
+      ${passage.questions.map(question => renderQuestion(question, paper.id)).join("")}
     </div>`;
 }
 
-function renderQuestion(question) {
+function renderQuestion(question, paperId) {
   return `
     <section class="question-card" id="q-${question.number}">
       <p class="question-stem">${question.number}. ${clickableText(question.stem)}</p>
-      ${renderTranslateControl(`q-${question.number}-stem`, "查看题干翻译")}
+      ${renderTranslateControl(`${paperId}-q-${question.number}-stem`, "查看题干翻译")}
       ${question.choices.map(choice => `
         <label class="choice">
           <input type="radio" name="q-${question.number}" data-question="${question.number}" value="${choice.letter}" ${state.answers[answerKey(question.number)] === choice.letter ? "checked" : ""}>
           <span class="choice-text"><b>${choice.letter}.</b> ${clickableText(choice.text)}</span>
-          <span class="choice-tools">${renderTranslateControl(`q-${question.number}-${choice.letter}`, `查看 ${choice.letter} 选项翻译`)}</span>
+          <span class="choice-tools">${renderTranslateControl(`${paperId}-q-${question.number}-${choice.letter}`, `查看 ${choice.letter} 选项翻译`)}</span>
         </label>`).join("")}
     </section>`;
 }
@@ -338,7 +338,8 @@ function openWordSheet(word) {
   wordSheetContent.innerHTML = `
     <h2 class="word-title">${escapeHtml(info.word)} <span class="word-phonetic">${escapeHtml(info.phonetic)}</span></h2>
     <div class="word-meaning"><b>词性：</b>${escapeHtml(info.pos)}</div>
-    <div class="word-meaning"><b>考研常见意思：</b>${escapeHtml(info.meaning)}</div>`;
+    <div class="word-meaning"><b>常见释义：</b>${escapeHtml(info.meaning)}</div>
+    <div class="word-definition">不同单词书会按考试频率和语境筛义，这里优先给阅读中常见的基础义，做题时仍以所在句子为准。</div>`;
   wordSheet.classList.add("open");
 }
 
