@@ -9,6 +9,7 @@ const state = {
   selectedBankWord: null,
   answers: JSON.parse(localStorage.getItem("cet4-answers") || "{}"),
   translations: {},
+  localLexicon: {},
   visibleTranslations: new Set(),
 };
 
@@ -108,13 +109,35 @@ const wordBankMeanings = {
 
 function getWordInfo(word) {
   const base = word.toLowerCase().replace(/[^a-z-]/g, "");
-  const forms = [base, base.replace(/s$/, ""), base.replace(/ed$/, ""), base.replace(/ing$/, "")];
+  const forms = [
+    base,
+    base.replace(/s$/, ""),
+    base.replace(/es$/, ""),
+    base.replace(/ed$/, ""),
+    base.replace(/ing$/, ""),
+    base.replace(/ies$/, "y"),
+  ];
+  const localKey = forms.find(item => state.localLexicon[item]);
+  if (localKey) {
+    return formatLocalWord(base, state.localLexicon[localKey]);
+  }
   const foundKey = forms.find(item => lexicon[item] || wordBankMeanings[item]);
   if (foundKey) {
     const [pos, phonetic, meaning] = lexicon[foundKey] || wordBankMeanings[foundKey];
     return { word: base, pos, phonetic, meaning };
   }
   return guessWordInfo(base);
+}
+
+function formatLocalWord(word, entry) {
+  const translation = entry.translation || "";
+  const posMatch = translation.match(/\b(n|v|adj|adv|prep|conj|pron|num|int)\./i);
+  return {
+    word,
+    pos: posMatch ? posMatch[0] : "n./v.",
+    phonetic: entry.phonetic ? `/${entry.phonetic}/` : `/${word}/`,
+    meaning: translation || entry.definition || "暂无本地释义，建议结合上下文理解。",
+  };
 }
 
 function guessWordInfo(word) {
@@ -405,10 +428,12 @@ document.querySelector("#close-word-sheet").addEventListener("click", () => {
 Promise.all([
   fetch("data/papers.json").then(response => response.json()),
   fetch("data/translations.json").then(response => response.ok ? response.json() : {}).catch(() => ({})),
+  fetch("data/lexicon.json").then(response => response.ok ? response.json() : {}).catch(() => ({})),
 ])
-  .then(([data, translations]) => {
+  .then(([data, translations, localLexicon]) => {
     state.papers = data.papers;
     state.translations = translations;
+    state.localLexicon = localLexicon;
     renderHome();
   })
   .catch(() => {
